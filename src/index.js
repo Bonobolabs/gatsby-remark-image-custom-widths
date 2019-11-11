@@ -45,7 +45,7 @@ module.exports = (
     )
 
   const getWidthOverride = node => {
-    if (node.type === `html` && !!node.value.match(/width/)) {
+    if (node.value && !!node.value.match(/width/)) {
       // extract width in pixels, as an integer (or null)
       const regex = /width="([0-9]+)(?:px)?"/g
       const match = regex.exec(node.value)
@@ -161,6 +161,9 @@ module.exports = (
     if (!imageNode || !imageNode.absolutePath) {
       return resolve()
     }
+
+    // If width attribute is set then overwrite gatsby-config's maxWidth
+    if (width) options.maxWidth = `${width}px`
 
     let fluidResult = await fluid({
       file: imageNode,
