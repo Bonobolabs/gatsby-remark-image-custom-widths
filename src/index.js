@@ -44,6 +44,16 @@ module.exports = (
         node.type === `link`
     )
 
+  const getWidthOverride = node => {
+    if (node.type === `html` && !!node.value.match(/width/)) {
+      // extract width in pixels, as an integer (or null)
+      const regex = /width="([0-9]+)(?:px)?"/g
+      const match = regex.exec(node.value)
+      if (!match) return
+      return parseInt(match[1])
+    }
+  }
+
   // Get all the available definitions in the markdown tree
   const definitions = getDefinitions(markdownAST)
 
@@ -52,8 +62,9 @@ module.exports = (
   let rawHtmlNodes = []
   visitWithParents(markdownAST, [`html`, `jsx`], (node, ancestors) => {
     const inLink = ancestors.some(findParentLinks)
+    const width = getWidthOverride(node) || null
 
-    rawHtmlNodes.push({ node, inLink })
+    rawHtmlNodes.push({ node, inLink, width })
   })
 
   // This will only work for markdown syntax image tags
@@ -127,7 +138,8 @@ module.exports = (
     node,
     resolve,
     inLink,
-    overWrites = {}
+    overWrites = {},
+    width = null
   ) {
     // Check if this markdownNode has a File parent. This plugin
     // won't work if the image isn't hosted locally.
@@ -164,7 +176,7 @@ module.exports = (
     const originalImg = fluidResult.originalImg
     const fallbackSrc = fluidResult.src
     const srcSet = fluidResult.srcSet
-    const presentationWidth = fluidResult.presentationWidth
+    const presentationWidth = width ? width : fluidResult.presentationWidth
 
     // Generate default alt tag
     const srcSplit = getImageInfo(node.url).url.split(`/`)
