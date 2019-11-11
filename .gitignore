@@ -4,3 +4,5 @@
 /index.js
 /__tests__/*
 tests
+node_modules
+yarn.lock
