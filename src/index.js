@@ -45,13 +45,13 @@ module.exports = (
     )
 
   const getWidthOverride = node => {
-    if (node.value && !!node.value.match(/width/)) {
-      // extract width in pixels, as an integer (or null)
-      const regex = /width="([0-9]+)(?:px)?"/g
-      const match = regex.exec(node.value)
-      if (!match) return
-      return parseInt(match[1])
-    }
+    if (!node.value || !node.value.match(/width/)) return null
+
+    // extract width in pixels, as an integer (or null)
+    const regex = /width="([0-9]+)(?:px)?"/g
+    const match = regex.exec(node.value)
+    if (!match) return
+    return parseInt(match[1])
   }
 
   // Get all the available definitions in the markdown tree
@@ -415,7 +415,7 @@ module.exports = (
     Promise.all(
       // Complex because HTML nodes can contain multiple images
       rawHtmlNodes.map(
-        ({ node, inLink }) =>
+        ({ node, inLink, width }) =>
           new Promise(async (resolve, reject) => {
             if (!node.value) {
               return resolve()
@@ -455,7 +455,9 @@ module.exports = (
                 const rawHTML = await generateImagesAndUpdateNode(
                   formattedImgTag,
                   resolve,
-                  inLink
+                  inLink,
+                  {},
+                  width
                 )
 
                 if (rawHTML) {
